@@ -75,22 +75,34 @@ Image sobel(const Image &in, int mode, const std::vector<int>& thresholds) {
 
 int main(int argc,char*argv[]){
     if(argc<4){
-        std::cerr<<"Usage: ./main config.txt input.jpg output.jpg > output.txt\n";
+        std::cerr<<"Usage: ./main n input.jpg output.jpg > output.txt\n";
         return 1;
     }
 
-    std::string configFile = argv[1];
+    int n = std::stoi(argv[1]);
     std::string inputFile  = argv[2];
     std::string outputFile = argv[3];
 
+    if (n < 0) {
+        std::cerr<<"Error: n must be greater than or equal to 0\n";
+        return 1;
+    }
+
+    
     int mode;
     std::vector<int> thresholds;
-    {
-        std::ifstream cfg(configFile);
-        if(!cfg) { std::cerr<<"Error: config.txt not found\n"; return 1; }
-        cfg >> mode;
-        int t;
-        while(cfg >> t) thresholds.push_back(t);
+    
+    if (n == 0) {
+        mode = 0; // gradient magnitude
+    } else if (n == 1) {
+        mode = 1; // Binary threshold
+        thresholds.push_back(128);
+    } else {
+        mode = 2; // Multi-level thresholds
+        for (int i = 1; i < n; i++) {
+            int threshold = (255 * i) / n;
+            thresholds.push_back(threshold);
+        }
     }
 
     auto t0 = std::chrono::high_resolution_clock::now();
